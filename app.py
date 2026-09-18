@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="UFC AI Rankings", page_icon="🏆", layout="wide")
+st.set_page_config(page_title="UFC ELO Rankings", page_icon="🏆", layout="wide")
 st.title("ELO UFC Rankings")
 st.markdown("Global, Strike, and Grapple Elo ratings")
 
