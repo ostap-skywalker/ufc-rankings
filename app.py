@@ -1,33 +1,15 @@
-import os
-import zipfile
 import streamlit as st
 import pandas as pd
-import sqlite3
 import json
-
-if not os.path.exists("ufc_ml_engine.db"):
-    with zipfile.ZipFile("ufc_ml_engine.zip", 'r') as zip_ref:
-        zip_ref.extractall(".")
-
 
 st.set_page_config(page_title="UFC AI Rankings", page_icon="🏆", layout="wide")
 st.title("🏆 UFC AI Divisional & Vector Rankings")
 st.markdown("Powered by Mathematical P4P, Strike, and Grapple Elo ratings.")
 
-@st.cache_resource
+@st.cache_data
 def load_data():
-    conn = sqlite3.connect("ufc_ml_engine.db", check_same_thread=False)
-    roster = pd.read_sql("SELECT * FROM current_profiles", conn)
-    
-    ext_elo = pd.read_sql("""
-        SELECT name, strike_elo, grapple_elo FROM (
-            SELECT f1 as name, date, f1_strike_elo as strike_elo, f1_grapple_elo as grapple_elo FROM ml_dataset
-            UNION
-            SELECT f2 as name, date, f2_strike_elo as strike_elo, f2_grapple_elo as grapple_elo FROM ml_dataset
-        ) ORDER BY date DESC
-    """, conn)
-    ext_elo = ext_elo.drop_duplicates(subset=['name'], keep='first')
-    df = pd.merge(roster, ext_elo, on='name', how='left')
+
+    df = pd.read_csv("rankings_light.csv")
     return df
 
 roster = load_data()
