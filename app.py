@@ -1,14 +1,12 @@
 import streamlit as st
 import pandas as pd
-import json
 
 st.set_page_config(page_title="UFC AI Rankings", page_icon="🏆", layout="wide")
-st.title("ELO Based UFC Rankings")
+st.title("ELO UFC Rankings")
 st.markdown("Global, Strike, and Grapple Elo ratings")
 
 @st.cache_data
 def load_data():
-
     df = pd.read_csv("rankings_light.csv")
     return df
 
@@ -18,10 +16,10 @@ filt_c1, filt_c2, filt_c3 = st.columns(3)
 with filt_c1: weight_filter = st.selectbox("Ranking Category", [
     "Pound-for-Pound (All)", "Best Strikers (Strike Elo)", "Best Grapplers (Grapple Elo)", 
     "Flyweight", "Bantamweight", "Featherweight", "Lightweight", "Welterweight", 
-    "Middleweight", "Light Heavyweight", "Heavyweight(fatweight)", "Strawweight"
+    "Middleweight", "Light Heavyweight", "Heavyweight", "Strawweight"
 ])
-with filt_c2: era_filter = st.selectbox("Roster Era", ["Active Fighters", "All Time Roster"])
-with filt_c3: state_filter = st.selectbox("Fighter State", ["Current Rating", "Peak Rating (Prime)"])
+with filt_c2: era_filter = st.selectbox("Roster Era", ["Active Fighters", "All-Time Roster"])
+with filt_c3: state_filter = st.selectbox("Fighter State", ["Current Rating", "Absolute Peak (Prime)"])
 
 df_rank = roster.copy()
 if era_filter == "Active Fighters":
@@ -30,28 +28,28 @@ if era_filter == "Active Fighters":
     df_rank = df_rank[df_rank['last_fight_date'] >= cutoff]
 
 is_peak = (state_filter == "Absolute Peak (Prime)")
+sort_col = "peak_elo" if is_peak else "global_elo"
 
 if weight_filter == "Pound-for-Pound (All)":
-    sort_col = "peak_elo" if is_peak else "global_elo"
     df_rank = df_rank.sort_values(by=sort_col, ascending=False).reset_index(drop=True)
     display_cols = ['name', 'fights_in_ufc', 'stance', 'strike_elo', 'grapple_elo', sort_col]
     col_names = ['Fighter', 'UFC Fights', 'Stance', 'Strike Elo', 'Grapple Elo', 'P4P Elo']
 elif "Best Strikers" in weight_filter:
     df_rank = df_rank.sort_values(by="strike_elo", ascending=False).reset_index(drop=True)
-    display_cols = ['name', 'fights_in_ufc', 'stance', 'strike_elo', 'grapple_elo', 'global_elo']
+    display_cols = ['name', 'fights_in_ufc', 'stance', 'strike_elo', 'grapple_elo', sort_col]
     col_names = ['Fighter', 'UFC Fights', 'Stance', 'Strike Elo', 'Grapple Elo', 'Global Elo']
 elif "Best Grapplers" in weight_filter:
     df_rank = df_rank.sort_values(by="grapple_elo", ascending=False).reset_index(drop=True)
-    display_cols = ['name', 'fights_in_ufc', 'stance', 'grapple_elo', 'strike_elo', 'global_elo']
+    display_cols = ['name', 'fights_in_ufc', 'stance', 'grapple_elo', 'strike_elo', sort_col]
     col_names = ['Fighter', 'UFC Fights', 'Stance', 'Grapple Elo', 'Strike Elo', 'Global Elo']
 else:
+    
     div_clean = weight_filter
-    def extract_div_elo(row):
-        try: return json.loads(row['peak_div_elo_json'] if is_peak else row['div_elo_json']).get(div_clean, None)
-        except: return None
-    df_rank['div_score'] = df_rank.apply(extract_div_elo, axis=1)
-    df_rank = df_rank.dropna(subset=['div_score']).sort_values(by='div_score', ascending=False).reset_index(drop=True)
-    display_cols = ['name', 'fights_in_ufc', 'stance', 'strike_elo', 'grapple_elo', 'div_score']
+    if 'weight_class' in df_rank.columns:
+        df_rank = df_rank[df_rank['weight_class'].astype(str).str.contains(div_clean, case=False, na=False)]
+        
+    df_rank = df_rank.sort_values(by=sort_col, ascending=False).reset_index(drop=True)
+    display_cols = ['name', 'fights_in_ufc', 'stance', 'strike_elo', 'grapple_elo', sort_col]
     col_names = ['Fighter', 'UFC Fights', 'Stance', 'Strike Elo', 'Grapple Elo', f'{div_clean} Elo']
 
 df_display = df_rank.head(100)[display_cols].copy()
