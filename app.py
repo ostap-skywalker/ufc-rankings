@@ -3,8 +3,8 @@ import pandas as pd
 import json
 
 st.set_page_config(page_title="UFC AI Rankings", page_icon="🏆", layout="wide")
-st.title("🏆 UFC AI Divisional & Vector Rankings")
-st.markdown("Powered by Mathematical P4P, Strike, and Grapple Elo ratings.")
+st.title("ELO Based UFC Rankings")
+st.markdown("Global, Strike, and Grapple Elo ratings")
 
 @st.cache_data
 def load_data():
@@ -16,12 +16,12 @@ roster = load_data()
 
 filt_c1, filt_c2, filt_c3 = st.columns(3)
 with filt_c1: weight_filter = st.selectbox("Ranking Category", [
-    "Pound-for-Pound (All)", "🥊 Best Strikers (Strike Elo)", "🤼 Best Grapplers (Grapple Elo)", 
+    "Pound-for-Pound (All)", "Best Strikers (Strike Elo)", "Best Grapplers (Grapple Elo)", 
     "Flyweight", "Bantamweight", "Featherweight", "Lightweight", "Welterweight", 
-    "Middleweight", "Light Heavyweight", "Heavyweight", "Strawweight"
+    "Middleweight", "Light Heavyweight", "Heavyweight(fatweight)", "Strawweight"
 ])
-with filt_c2: era_filter = st.selectbox("Roster Era", ["Active Fighters", "All-Time Roster"])
-with filt_c3: state_filter = st.selectbox("Fighter State", ["Current Rating", "Absolute Peak (Prime)"])
+with filt_c2: era_filter = st.selectbox("Roster Era", ["Active Fighters", "All Time Roster"])
+with filt_c3: state_filter = st.selectbox("Fighter State", ["Current Rating", "Peak Rating (Prime)"])
 
 df_rank = roster.copy()
 if era_filter == "Active Fighters":
